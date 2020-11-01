@@ -3,7 +3,7 @@ Powerful URL shortener library in ASP.NET Core WebAPI and C# which contains seve
 
 # Feautures
 - Designed by n-tier architecture. 
-- Provided click tracking such as country of users by matching their IP, operatin system, browsers , and etc.
+- Provided click tracking information such as country of users by matching their IP, operatin system, browsers , Date, Time and etc.
 - Implemented internal cache, resulting in higher response time on repetitive requests.
 - Used Dapper as ORM, resulted in better readability of codes and higher performance compared with EF.
 - Focused on independent protection layer, so layers connected to each other by Interfaces and could be easily modified.
@@ -13,3 +13,7 @@ Powerful URL shortener library in ASP.NET Core WebAPI and C# which contains seve
 2. Edit ConnectionStrings in [appsettings.json](src/appsettings.json) file
 3. Insert your short link records in shortlink table in sql
 4. Run the project and have fun ;)
+
+# TODO List
+1. Modify repository layer to accept different database type
+2. Impelement admin panel so that users would register and manage thier links and statistics.
