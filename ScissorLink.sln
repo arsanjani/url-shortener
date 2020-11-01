@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27004.2005
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScissorLink", "akhr.ir\ScissorLink.csproj", "{644E6CB8-F725-4E29-96FE-D1DAFD51C8C7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScissorLink", "src\ScissorLink.csproj", "{644E6CB8-F725-4E29-96FE-D1DAFD51C8C7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
