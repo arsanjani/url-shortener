@@ -348,3 +348,7 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+/akhr.ir/wwwroot/font/IRANSansWeb_UltraLight.ttf
+/akhr.ir/wwwroot/favicon-16x16.png
+/akhr.ir/wwwroot/favicon-32x32.png
+/akhr.ir/wwwroot/favicon.ico
