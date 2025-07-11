@@ -1,7 +1,7 @@
 # Short URL Router 
 Powerful URL shortener library in ASP.NET Core WebAPI and C# which contains several features such as click tracking, SQL back-end, internal cache, and modern responsive UI.
 
-## 🚀 Latest Updates (2024)
+## 🚀 Latest Updates (2025)
 - **Upgraded to .NET 9** - Latest long-term support version with improved performance
 - **Modernized Architecture** - Migrated from legacy WebHost to minimal hosting model
 - **Enhanced UI** - Beautiful, responsive 404 error page with modern Bootstrap 5
