@@ -10,12 +10,10 @@ namespace akhr.ir.Models
     public class DtoShortLinkDetail
     {
         [Key]
-        public Int64 ID { get; set; }
+        public long ID { get; set; }
         public int ShortLinkID { get; set; }
-        public String Country { get; set; }
-        public String OS { get; set; }
-        public String Browser { get; set; }
-
-
+        public string? Country { get; set; }
+        public string? OS { get; set; }
+        public string? Browser { get; set; }
     }
 }

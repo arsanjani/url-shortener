@@ -13,20 +13,26 @@ namespace akhr.ir.Repos
     public class ProcessRepo : BaseRepo, IProcessRepo
     {
         #region Constructor
-        public ProcessRepo(IConfiguration _config)
+        public ProcessRepo(IConfiguration config)
         {
-            Config = _config;
+            Config = config ?? throw new ArgumentNullException(nameof(config));
         }
         #endregion
 
         #region Implement Methods
-        public async Task<DtoShortLink> Get(string token)
+        public async Task<DtoShortLink?> Get(string token)
         {
+            if (con == null)
+                return null;
+            
             return await con.GetAsync<DtoShortLink>(token);
         }
 
         public async Task<bool> Save(DtoShortLinkDetail dto)
         {
+            if (con == null)
+                return false;
+            
             await con.InsertAsync(dto);
             return true;
         }

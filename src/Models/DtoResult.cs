@@ -7,7 +7,7 @@ namespace akhr.ir.Models
 {
     public class DtoResult
     {
-        public object Result { get; set; }
-        public string Error { get; set; }
+        public object? Result { get; set; }
+        public string? Error { get; set; }
     }
 }

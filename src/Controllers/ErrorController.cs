@@ -13,7 +13,7 @@ namespace akhr.ir.Controllers
         [Route("error/{code:int}")]
         public IActionResult Error(int code)
         {
-            ViewBag.PageTitle = "Oops! " + code;
+            ViewBag.PageTitle = $"Oops! {code}";
             ViewBag.Title = "!این راه به جایی نمیرسد";
             ViewBag.SubTitle = "شرمنده، به نظر می‌رسد مشکلی پدید آمده باشد. صفحه درخواستی پیدا نشد که نشد";
             return View("Views/404.cshtml");

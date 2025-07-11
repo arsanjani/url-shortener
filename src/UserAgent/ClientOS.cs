@@ -8,47 +8,50 @@ namespace akhr.ir.UserAgent
 {
     public class ClientOS
     {
-        private static Dictionary<string, string> _versionMap = new Dictionary<string, string>{
-            {"4.90","ME" },
-            { "NT3.51","NT 3.11"},
-            { "NT4.0","NT 4.0"},
-            { "NT 5.0","2000"},
-            { "NT 5.1","XP"},
-            { "NT 5.2","XP"},
-            { "NT 6.0","Vista"},
-            { "NT 6.1","7"},
-            { "NT 6.2","8"},
-            { "NT 6.3","8.1"},
-            { "NT 6.4","10"},
-            { "NT 10.0","10"},
-            { "ARM","RT"}
+        private static readonly Dictionary<string, string> VersionMap = new()
+        {
+            { "4.90", "ME" },
+            { "NT3.51", "NT 3.11" },
+            { "NT4.0", "NT 4.0" },
+            { "NT 5.0", "2000" },
+            { "NT 5.1", "XP" },
+            { "NT 5.2", "XP" },
+            { "NT 6.0", "Vista" },
+            { "NT 6.1", "7" },
+            { "NT 6.2", "8" },
+            { "NT 6.3", "8.1" },
+            { "NT 6.4", "10" },
+            { "NT 10.0", "10" },
+            { "ARM", "RT" }
         };
 
         public ClientOS(string userAgent)
         {
-            foreach (var matchItem in _matchs)
+            if (string.IsNullOrEmpty(userAgent))
+            {
+                return;
+            }
+
+            foreach (var matchItem in Matches)
             {
                 foreach (var regexItem in matchItem.Regexes)
                 {
                     if (regexItem.IsMatch(userAgent))
                     {
                         var match = regexItem.Match(userAgent);
-
                         matchItem.Action(match, this);
-
                         return;
                     }
                 }
             }
         }
 
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Version { get; set; } = string.Empty;
 
-        public string Version { get; set; }
-
-        private static void NameVersionAction(Match match, Object obj)
+        private static void NameVersionAction(Match match, object obj)
         {
-            ClientOS current = obj as ClientOS;
+            if (obj is not ClientOS current) return;
 
             current.Name = new Regex(@"^[a-zA-Z]+", RegexOptions.IgnoreCase).Match(match.Value).Value;
             if (match.Value.Length > current.Name.Length)
@@ -57,213 +60,262 @@ namespace akhr.ir.UserAgent
             }
         }
 
-        private static List<MatchExpression> _matchs = new List<MatchExpression> {
-            new MatchExpression{
-                Regexes = new List<Regex>{
-                    new Regex(@"microsoft\s(windows)\s(vista|xp)",RegexOptions.IgnoreCase),// Windows (iTunes)
-                    
+        private static readonly List<MatchExpression> Matches = new()
+        {
+            new MatchExpression
+            {
+                Regexes = new List<Regex>
+                {
+                    new(@"microsoft\s(windows)\s(vista|xp)", RegexOptions.IgnoreCase),
                 },
                 Action = NameVersionAction
             },
-            new MatchExpression{
-                Regexes = new List<Regex>{
-                    new Regex(@"(windows)\snt\s6\.2;\s(arm)",RegexOptions.IgnoreCase),// Windows RT
-                    new Regex(@"(windows\sphone(?:\sos)*)[\s\/]?([\d\.\s]+\w)*",RegexOptions.IgnoreCase),// Windows Phone
+            new MatchExpression
+            {
+                Regexes = new List<Regex>
+                {
+                    new(@"(windows)\snt\s6\.2;\s(arm)", RegexOptions.IgnoreCase),
+                    new(@"(windows\sphone(?:\sos)*)[\s\/]?([\d\.\s]+\w)*", RegexOptions.IgnoreCase),
                 },
-                Action = (Match match, Object obj)=>{
-                    ClientOS current = obj as ClientOS;
+                Action = (Match match, object obj) =>
+                {
+                    if (obj is not ClientOS current) return;
 
-                    current.Name = new Regex(@"(^[a-zA-Z]+\s[a-zA-Z]+)",RegexOptions.IgnoreCase).Match(match.Value).Value;
+                    current.Name = new Regex(@"(^[a-zA-Z]+\s[a-zA-Z]+)", RegexOptions.IgnoreCase).Match(match.Value).Value;
 
-                    if(current.Name.Length<match.Value.Length)
-                    {
-                        var version = match.Value.Substring(current.Name.Length+1);
-
-                        current.Version = _versionMap.Keys.Any(m=>m==version)? _versionMap[version]:version;
-                    }
-                }
-            },
-            new MatchExpression{
-                Regexes = new List<Regex>{
-                    new Regex(@"(windows\smobile|windows)[\s\/]?([ntce\d\.\s]+\w)",RegexOptions.IgnoreCase)
-                },
-                Action = (Match match, Object obj)=>{
-                    ClientOS current = obj as ClientOS;
-
-                    current.Name = new Regex(@"(^[a-zA-Z]+)",RegexOptions.IgnoreCase).Match(match.Value).Value;
-
-                    if(current.Name.Length<match.Value.Length)
+                    if (current.Name.Length < match.Value.Length)
                     {
                         var version = match.Value.Substring(current.Name.Length + 1);
-
-                        current.Version = _versionMap.Keys.Any(m=>m==version)? _versionMap[version]:version;
+                        current.Version = VersionMap.ContainsKey(version) ? VersionMap[version] : version;
                     }
                 }
             },
-            new MatchExpression{
-                Regexes = new List<Regex>{
-                    new Regex(@"(win(?=3|9|n)|win\s9x\s)([nt\d\.]+)",RegexOptions.IgnoreCase)
+            new MatchExpression
+            {
+                Regexes = new List<Regex>
+                {
+                    new(@"(windows\smobile|windows)[\s\/]?([ntce\d\.\s]+\w)", RegexOptions.IgnoreCase)
                 },
-                Action = (Match match, Object obj)=>{
-                    ClientOS current = obj as ClientOS;
+                Action = (Match match, object obj) =>
+                {
+                    if (obj is not ClientOS current) return;
 
-                    var nameAndVersion = new string[]{match.Value.Substring(0,match.Value.IndexOf(" ")),match.Value.Substring(match.Value.IndexOf(" ")+1) };
+                    current.Name = new Regex(@"(^[a-zA-Z]+)", RegexOptions.IgnoreCase).Match(match.Value).Value;
 
-                    current.Name = "Windows";
-
-                    var version = nameAndVersion[1];
-
-                    current.Version = _versionMap.Keys.Any(m=>m==version)? _versionMap[version]:version;
+                    if (current.Name.Length < match.Value.Length)
+                    {
+                        var version = match.Value.Substring(current.Name.Length + 1);
+                        current.Version = VersionMap.ContainsKey(version) ? VersionMap[version] : version;
+                    }
                 }
             },
-            new MatchExpression{
-                Regexes = new List<Regex>{
-                    new Regex(@"\((bb)(10);",RegexOptions.IgnoreCase)// BlackBerry 10
+            new MatchExpression
+            {
+                Regexes = new List<Regex>
+                {
+                    new(@"(win(?=3|9|n)|win\s9x\s)([nt\d\.]+)", RegexOptions.IgnoreCase)
                 },
-                Action = (Match match, Object obj)=>{
-                    ClientOS current = obj as ClientOS;
+                Action = (Match match, object obj) =>
+                {
+                    if (obj is not ClientOS current) return;
 
+                    var spaceIndex = match.Value.IndexOf(" ");
+                    if (spaceIndex == -1) return;
+
+                    var nameAndVersion = new string[] { match.Value.Substring(0, spaceIndex), match.Value.Substring(spaceIndex + 1) };
+                    current.Name = "Windows";
+                    var version = nameAndVersion[1];
+                    current.Version = VersionMap.ContainsKey(version) ? VersionMap[version] : version;
+                }
+            },
+            new MatchExpression
+            {
+                Regexes = new List<Regex>
+                {
+                    new(@"\((bb)(10);", RegexOptions.IgnoreCase)
+                },
+                Action = (Match match, object obj) =>
+                {
+                    if (obj is not ClientOS current) return;
                     current.Name = "BlackBerry";
-
                     current.Version = "BB10";
                 }
             },
-            new MatchExpression{
-                Regexes = new List<Regex>{
-                    new Regex(@"(blackberry)\w*\/?([\w\.]+)*",RegexOptions.IgnoreCase),// Blackberry
-                    new Regex(@"(tizen)[\/\s]([\w\.]+)",RegexOptions.IgnoreCase),// Tizen
-                    new Regex(@"(android|webos|palm\sos|qnx|bada|rim\stablet\sos|meego|contiki)[\/\s-]?([\w\.]+)*",RegexOptions.IgnoreCase),// Android/WebOS/Palm/QNX/Bada/RIM/MeeGo/Contiki
-                    new Regex(@"linux;.+(sailfish);",RegexOptions.IgnoreCase)// Sailfish OS
+            new MatchExpression
+            {
+                Regexes = new List<Regex>
+                {
+                    new(@"(blackberry)\w*\/?([\w\.]+)*", RegexOptions.IgnoreCase),
+                    new(@"(tizen)[\/\s]([\w\.]+)", RegexOptions.IgnoreCase),
+                    new(@"(android|webos|palm\sos|qnx|bada|rim\stablet\sos|meego|contiki)[\/\s-]?([\w\.]+)*", RegexOptions.IgnoreCase),
+                    new(@"linux;.+(sailfish);", RegexOptions.IgnoreCase)
                 },
                 Action = NameVersionAction
             },
-            new MatchExpression{
-                Regexes = new List<Regex>{
-                    new Regex(@"(symbian\s?os|symbos|s60(?=;))[\/\s-]?([\w\.]+)*",RegexOptions.IgnoreCase)// Symbian
+            new MatchExpression
+            {
+                Regexes = new List<Regex>
+                {
+                    new(@"(symbian\s?os|symbos|s60(?=;))[\/\s-]?([\w\.]+)*", RegexOptions.IgnoreCase)
                 },
-                Action = (Match match, Object obj)=>{
-                    ClientOS current = obj as ClientOS;
+                Action = (Match match, object obj) =>
+                {
+                    if (obj is not ClientOS current) return;
 
-                    var nameAndVersion = new string[]{match.Value.Substring(0,match.Value.IndexOf(" ")),match.Value.Substring(match.Value.IndexOf(" ")+1) };
+                    var spaceIndex = match.Value.IndexOf(" ");
+                    if (spaceIndex == -1) return;
 
+                    var nameAndVersion = new string[] { match.Value.Substring(0, spaceIndex), match.Value.Substring(spaceIndex + 1) };
                     current.Name = "Symbian";
-
                     current.Version = nameAndVersion[1];
                 }
             },
-            new MatchExpression{
-                Regexes = new List<Regex>{
-                    new Regex(@"\((series40);",RegexOptions.IgnoreCase)// Series 40
+            new MatchExpression
+            {
+                Regexes = new List<Regex>
+                {
+                    new(@"\((series40);", RegexOptions.IgnoreCase)
                 },
-                Action = (Match match, Object obj)=>{
-                    ClientOS current = obj as ClientOS;
-
+                Action = (Match match, object obj) =>
+                {
+                    if (obj is not ClientOS current) return;
                     current.Name = match.Value;
                 }
             },
-            new MatchExpression{
-                Regexes = new List<Regex>{
-                    new Regex(@"mozilla.+\(mobile;.+gecko.+firefox",RegexOptions.IgnoreCase)// Firefox OS
+            new MatchExpression
+            {
+                Regexes = new List<Regex>
+                {
+                    new(@"mozilla.+\(mobile;.+gecko.+firefox", RegexOptions.IgnoreCase)
                 },
-                Action = (Match match, Object obj)=>{
-                    ClientOS current = obj as ClientOS;
+                Action = (Match match, object obj) =>
+                {
+                    if (obj is not ClientOS current) return;
 
-                    var nameAndVersion = new string[]{match.Value.Substring(0,match.Value.IndexOf(" ")),match.Value.Substring(match.Value.IndexOf(" ")+1) };
+                    var spaceIndex = match.Value.IndexOf(" ");
+                    if (spaceIndex == -1) return;
 
+                    var nameAndVersion = new string[] { match.Value.Substring(0, spaceIndex), match.Value.Substring(spaceIndex + 1) };
                     current.Name = "Firefox OS";
-
                     current.Version = nameAndVersion[1];
                 }
             },
-            new MatchExpression{
-                Regexes = new List<Regex>{
-                    // Console
-                    new Regex(@"(nintendo|playstation)\s([wids34portablevu]+)",RegexOptions.IgnoreCase),// Nintendo/Playstation
-
-                    // GNU/Linux based
-                    new Regex(@"(mint)[\/\s\(]?(\w+)*",RegexOptions.IgnoreCase),// Mint
-                    new Regex(@"(mageia|vectorlinux)[;\s]",RegexOptions.IgnoreCase),// Mageia/VectorLinux
-                    new Regex(@"(joli|[kxln]?ubuntu|debian|[open]*suse|gentoo|(?=\s)arch|slackware|fedora|mandriva|centos|pclinuxos|redhat|zenwalk|linpus)[\/\s-]?(?!chrom)([\w\.-]+)*",RegexOptions.IgnoreCase),// Joli/Ubuntu/Debian/SUSE/Gentoo/Arch/Slackware
+            new MatchExpression
+            {
+                Regexes = new List<Regex>
+                {
+                    new(@"(nintendo|playstation)\s([wids34portablevu]+)", RegexOptions.IgnoreCase),
+                    new(@"(mint)[\/\s\(]?(\w+)*", RegexOptions.IgnoreCase),
+                    new(@"(mageia|vectorlinux)[;\s]", RegexOptions.IgnoreCase),
+                    new(@"(joli|[kxln]?ubuntu|debian|[open]*suse|gentoo|(?=\s)arch|slackware|fedora|mandriva|centos|pclinuxos|redhat|zenwalk|linpus)[\/\s-]?(?!chrom)([\w\.-]+)*", RegexOptions.IgnoreCase),
+                    new(@"(gnu)\s?([\w\.]+)*", RegexOptions.IgnoreCase)
+                },
+                Action = NameVersionAction
+            },
+            new MatchExpression
+            {
+                Regexes = new List<Regex>
+                {
+                    new(@"(hurd|linux)\s?([\w\.]+)*", RegexOptions.IgnoreCase)
+                },
+                Action = (Match match, object obj) =>
+                {
+                    if (obj is not ClientOS current) return;
                     
-                    // Joli/Ubuntu/Debian/SUSE/Gentoo/Arch/Slackware
-                    // Fedora/Mandriva/CentOS/PCLinuxOS/RedHat/Zenwalk/Linpus
-                    new Regex(@"(hurd|linux)\s?([\w\.]+)*",RegexOptions.IgnoreCase),// Hurd/Linux
-                    new Regex(@"(gnu)\s?([\w\.]+)*",RegexOptions.IgnoreCase)// GNU
-                },
-                Action = NameVersionAction
-            },
-            new MatchExpression{
-                Regexes = new List<Regex>{
-                    new Regex(@"(cros)\s[\w]+\s([\w\.]+\w)",RegexOptions.IgnoreCase)// Chromium OS
-                },
-                Action = (Match match, Object obj)=>{
-                    ClientOS current = obj as ClientOS;
-
-                    var nameAndVersion = new string[]{match.Value.Substring(0,match.Value.IndexOf(" ")),match.Value.Substring(match.Value.IndexOf(" ")+1) };
-
-                    current.Name = "Chromium OS";
-
-                    current.Version = nameAndVersion[1];
+                    current.Name = new Regex(@"^[a-zA-Z]+", RegexOptions.IgnoreCase).Match(match.Value).Value;
+                    // Extract architecture (e.g., "x86_64") from the match
+                    var archMatch = Regex.Match(match.Value, @"linux\s+([\w\.]+)", RegexOptions.IgnoreCase);
+                    if (archMatch.Success)
+                    {
+                        current.Version = archMatch.Groups[1].Value;
+                    }
                 }
             },
-            new MatchExpression{
-                Regexes = new List<Regex>{
-                    new Regex(@"(sunos)\s?([\w\.]+\d)*",RegexOptions.IgnoreCase)// Solaris
+            new MatchExpression
+            {
+                Regexes = new List<Regex>
+                {
+                    new(@"(cros)\s[\w]+\s([\w\.]+\w)", RegexOptions.IgnoreCase)
                 },
-                Action = (Match match, Object obj)=>{
-                    ClientOS current = obj as ClientOS;
+                Action = (Match match, object obj) =>
+                {
+                    if (obj is not ClientOS current) return;
 
-                    var nameAndVersion = new string[]{match.Value.Substring(0,match.Value.IndexOf(" ")),match.Value.Substring(match.Value.IndexOf(" ")+1) };
+                    current.Name = "CrOS";
+                    
+                    // Extract the architecture part (e.g., "x86_64") from the match
+                    var architectureMatch = Regex.Match(match.Value, @"cros\s+(\w+)", RegexOptions.IgnoreCase);
+                    if (architectureMatch.Success)
+                    {
+                        current.Version = architectureMatch.Groups[1].Value;
+                    }
+                }
+            },
+            new MatchExpression
+            {
+                Regexes = new List<Regex>
+                {
+                    new(@"(sunos)\s?([\w\.]+\d)*", RegexOptions.IgnoreCase)
+                },
+                Action = (Match match, object obj) =>
+                {
+                    if (obj is not ClientOS current) return;
 
+                    var spaceIndex = match.Value.IndexOf(" ");
+                    if (spaceIndex == -1) return;
+
+                    var nameAndVersion = new string[] { match.Value.Substring(0, spaceIndex), match.Value.Substring(spaceIndex + 1) };
                     current.Name = "Solaris";
-
                     current.Version = nameAndVersion[1];
                 }
             },
-            new MatchExpression{
-                Regexes = new List<Regex>{
-                    new Regex(@"\s([frentopc-]{0,4}bsd|dragonfly)\s?([\w\.]+)*",RegexOptions.IgnoreCase),// FreeBSD/NetBSD/OpenBSD/PC-BSD/DragonFly
-                    new Regex(@"(haiku)\s(\w+)",RegexOptions.IgnoreCase)
+            new MatchExpression
+            {
+                Regexes = new List<Regex>
+                {
+                    new(@"\s([frentopc-]{0,4}bsd|dragonfly)\s?([\w\.]+)*", RegexOptions.IgnoreCase),
+                    new(@"(haiku)\s(\w+)", RegexOptions.IgnoreCase)
                 },
                 Action = NameVersionAction
             },
-            new MatchExpression{
-                Regexes = new List<Regex>{
-                    new Regex(@"(ip[honead]+)(?:.*os\s([\w]+)*\slike\smac|;\sopera)",RegexOptions.IgnoreCase)// iOS
+            new MatchExpression
+            {
+                Regexes = new List<Regex>
+                {
+                    new(@"(ip[honead]+)(?:.*os\s([\w]+)*\slike\smac|;\sopera)", RegexOptions.IgnoreCase)
                 },
-                Action = (Match match, Object obj)=>{
-                    ClientOS current = obj as ClientOS;
+                Action = (Match match, object obj) =>
+                {
+                    if (obj is not ClientOS current) return;
 
-                    var nameAndVersion = new string[]{match.Value.Substring(0,match.Value.IndexOf(" ")),match.Value.Substring(match.Value.IndexOf(" ")+1) };
+                    var spaceIndex = match.Value.IndexOf(" ");
+                    if (spaceIndex == -1) return;
 
+                    var nameAndVersion = new string[] { match.Value.Substring(0, spaceIndex), match.Value.Substring(spaceIndex + 1) };
                     current.Name = "iOS";
-
-                    current.Version = new Regex(@"\d+(?:\.\d+)*").Match(nameAndVersion[1].Replace("_",".")).Value;
+                    current.Version = new Regex(@"\d+(?:\.\d+)*").Match(nameAndVersion[1].Replace("_", ".")).Value;
                 }
             },
-            new MatchExpression{
-                Regexes = new List<Regex>{
-                    new Regex(@"(mac\sos\sx)\s?([\w\s\.]+\w)*",RegexOptions.IgnoreCase),
-                    new Regex(@"(macintosh|mac(?=_powerpc)\s)",RegexOptions.IgnoreCase)// Mac OS
+            new MatchExpression
+            {
+                Regexes = new List<Regex>
+                {
+                    new(@"(mac\sos\sx)\s?([\w\s\.]+\w)*", RegexOptions.IgnoreCase),
+                    new(@"(macintosh|mac(?=_powerpc)\s)", RegexOptions.IgnoreCase)
                 },
-                Action = (Match match, Object obj)=>{
-                    ClientOS current = obj as ClientOS;
-
-                    var nameAndVersion = new string[]{match.Value.Substring(0,match.Value.IndexOf(" ")),match.Value.Substring(match.Value.IndexOf(" ")+1) };
+                Action = (Match match, object obj) =>
+                {
+                    if (obj is not ClientOS current) return;
 
                     current.Name = "Mac OS";
-
-                    current.Version = nameAndVersion[1].Replace('_','.');
+                    
+                    // Extract version from the match using regex
+                    var versionMatch = Regex.Match(match.Value, @"(\d+[_\.]\d+[_\.]\d+|\d+[_\.]\d+)", RegexOptions.IgnoreCase);
+                    if (versionMatch.Success)
+                    {
+                        current.Version = versionMatch.Value;
+                    }
                 }
-            },
-            new MatchExpression{
-                Regexes = new List<Regex>{
-                    new Regex(@"((?:open)?solaris)[\/\s-]?([\w\.]+)*",RegexOptions.IgnoreCase),// Solaris
-                    new Regex(@"(aix)\s((\d)(?=\.|\)|\s)[\w\.]*)*",RegexOptions.IgnoreCase),// AIX
-                    new Regex(@"(plan\s9|minix|beos|os\/2|amigaos|morphos|risc\sos|openvms)",RegexOptions.IgnoreCase),// Plan9/Minix/BeOS/OS2/AmigaOS/MorphOS/RISCOS/OpenVMS
-                    new Regex(@"(unix)\s?([\w\.]+)*",RegexOptions.IgnoreCase)// UNIX
-                },
-                Action = NameVersionAction
             }
         };
     }
