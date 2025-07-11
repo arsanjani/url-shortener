@@ -5,7 +5,8 @@ using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json;
+using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using akhr.ir.Models;
 
 namespace akhr.ir.Common
@@ -14,21 +15,23 @@ namespace akhr.ir.Common
     public class ErrorHandlingMiddleware
     {
         private readonly RequestDelegate _next;
+        private readonly ILogger<ErrorHandlingMiddleware> _logger;
 
-        public ErrorHandlingMiddleware(RequestDelegate next)
+        public ErrorHandlingMiddleware(RequestDelegate next, ILogger<ErrorHandlingMiddleware> logger)
         {
             _next = next;
+            _logger = logger;
         }
 
-        public async Task Invoke(HttpContext httpContext)
+        public async Task InvokeAsync(HttpContext httpContext)
         {
-
             try
             {
                 await _next(httpContext);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "An unhandled exception occurred");
                 await HandleExceptionAsync(httpContext, ex);
             }
         }
@@ -36,16 +39,20 @@ namespace akhr.ir.Common
         private static async Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
             var code = HttpStatusCode.InternalServerError;
-            DtoResult dto = new DtoResult
+            var dto = new DtoResult
             {
                 Result = false,
                 Error = exception.Message
             };
-            var result = JsonConvert.SerializeObject(dto);
+
+            var result = JsonSerializer.Serialize(dto, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)code;
             await context.Response.WriteAsync(result);
-            return;
         }
     }
 

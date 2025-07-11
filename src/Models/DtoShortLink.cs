@@ -10,10 +10,12 @@ namespace akhr.ir.Models
     public class DtoShortLink
     {
         public int ID { get; set; }
+        
         [Key]
-        public string Token { get; set; }
-        public string OriginLink { get; set; }
+        public string Token { get; set; } = string.Empty;
+        
+        public string OriginLink { get; set; } = string.Empty;
+        
         public bool IsPublish { get; set; }
-
     }
 }

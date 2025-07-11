@@ -8,7 +8,7 @@ namespace akhr.ir.Services.Interface
 {
     public interface IProcessService
     {
-        Task<DtoShortLink> Get(string token);
+        Task<DtoShortLink?> Get(string token);
         Task<bool> Save(DtoShortLinkDetail dto);
     }
 }

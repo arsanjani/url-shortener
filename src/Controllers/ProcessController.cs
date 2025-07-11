@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Hosting;
 using MaxMind.GeoIP2;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Extensions.Caching.Memory;
+using System.IO;
 
 namespace akhr.ir.Controllers
 {
@@ -16,18 +17,18 @@ namespace akhr.ir.Controllers
     public class ProcessController : Controller
     {
         #region Property
-        IProcessService srv;
-        IHostingEnvironment env;
-        IMemoryCache cache;
-        const int cacheDuration = 180;
+        private readonly IProcessService srv;
+        private readonly IWebHostEnvironment env;
+        private readonly IMemoryCache cache;
+        private const int CacheDuration = 180;
         #endregion
 
         #region Constructor
-        public ProcessController(IProcessService _srv, IHostingEnvironment _env, IMemoryCache _cache)
+        public ProcessController(IProcessService srv, IWebHostEnvironment env, IMemoryCache cache)
         {
-            srv = _srv;
-            env = _env;
-            cache = _cache;
+            this.srv = srv;
+            this.env = env;
+            this.cache = cache;
         }
         #endregion
 
@@ -42,7 +43,7 @@ namespace akhr.ir.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult> Get(string id)
         {
-            DtoShortLinkDetail dtoDetail = new DtoShortLinkDetail();
+            var dtoDetail = new DtoShortLinkDetail();
             var dto = await srv.Get(id);
             if (dto == null || dto.ID == 0 || !dto.IsPublish)
             {
@@ -53,14 +54,13 @@ namespace akhr.ir.Controllers
             {
                 #region GET BROWSER INFO
                 var ua = Request.Headers["User-Agent"];
-                UserAgent.UserAgent userAgent = new UserAgent.UserAgent(ua);
+                var userAgent = new UserAgent.UserAgent(ua!);
                 dtoDetail.OS = userAgent.OS.Name;
                 dtoDetail.Browser = userAgent.Browser.Name;
                 #endregion
 
                 #region GET IP
-                string ip;
-                ip = SplitCsv(GetHeaderValueAs<string>("X-Forwarded-For")).FirstOrDefault();
+                string? ip = SplitCsv(GetHeaderValueAs<string>("X-Forwarded-For")).FirstOrDefault();
 
                 if (string.IsNullOrWhiteSpace(ip) && HttpContext?.Connection?.RemoteIpAddress != null)
                     ip = HttpContext.Connection.RemoteIpAddress.ToString();
@@ -70,27 +70,29 @@ namespace akhr.ir.Controllers
                 #endregion
 
                 #region GEO LOCATION
-                string token = string.Format("ip-{0}", ip);
-                if (cache.TryGetValue(token, out string country))
+                if (!string.IsNullOrWhiteSpace(ip))
                 {
-                    dtoDetail.Country = country;
-                }
-                else
-                {
-                    using (var reader = new DatabaseReader(env.ContentRootPath + "\\wwwroot\\GeoLite2-Country.mmdb", MaxMind.Db.FileAccessMode.Memory))
+                    string token = $"ip-{ip}";
+                    if (cache.TryGetValue(token, out string? country))
                     {
+                        dtoDetail.Country = country;
+                    }
+                    else
+                    {
+                        var geoDbPath = Path.Combine(env.ContentRootPath, "wwwroot", "GeoLite2-Country.mmdb");
+                        using var reader = new DatabaseReader(geoDbPath, MaxMind.Db.FileAccessMode.Memory);
                         var obj = reader.Country(ip);
                         dtoDetail.Country = obj.Country.Name;
-                        cache.Set(token, obj.Country.Name, DateTime.Now.AddMinutes(cacheDuration));
+                        cache.Set(token, obj.Country.Name, DateTime.Now.AddMinutes(CacheDuration));
                     }
-                }
 
-                if (dtoDetail.Country == null)
-                    dtoDetail.Country = ip;
+                    dtoDetail.Country ??= ip;
+                }
                 #endregion
             }
             catch
             {
+                // Log exception in production
             }
             await srv.Save(dtoDetail);
             return Redirect(dto.OriginLink);
@@ -98,32 +100,29 @@ namespace akhr.ir.Controllers
         #endregion
 
         #region Utils
-        public T GetHeaderValueAs<T>(string headerName)
+        public T? GetHeaderValueAs<T>(string headerName)
         {
-
             if (HttpContext?.Request?.Headers?.TryGetValue(headerName, out StringValues values) ?? false)
             {
                 string rawValues = values.ToString();   // writes out as Csv when there are multiple.
 
-                if (!String.IsNullOrWhiteSpace(rawValues))
-                    return (T)Convert.ChangeType(values.ToString(), typeof(T));
+                if (!string.IsNullOrWhiteSpace(rawValues))
+                    return (T?)Convert.ChangeType(values.ToString(), typeof(T));
             }
-            return default(T);
+            return default;
         }
 
-        public List<string> SplitCsv(string csvList, bool nullOrWhitespaceInputReturnsNull = false)
+        public List<string> SplitCsv(string? csvList, bool nullOrWhitespaceInputReturnsNull = false)
         {
             if (string.IsNullOrWhiteSpace(csvList))
-                return nullOrWhitespaceInputReturnsNull ? null : new List<string>();
+                return nullOrWhitespaceInputReturnsNull ? new List<string>() : new List<string>();
 
             return csvList
                 .TrimEnd(',')
                 .Split(',')
-                .AsEnumerable<string>()
                 .Select(s => s.Trim())
                 .ToList();
         }
         #endregion
-
     }
 }

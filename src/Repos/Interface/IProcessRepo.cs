@@ -8,7 +8,7 @@ namespace akhr.ir.Repos.Interface
 {
     public interface IProcessRepo
     {
-        Task<DtoShortLink> Get(string token);
+        Task<DtoShortLink?> Get(string token);
         Task<bool> Save(DtoShortLinkDetail dto);
     }
 }

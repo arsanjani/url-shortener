@@ -8,8 +8,8 @@ namespace akhr.ir.UserAgent
 {
     public class MatchExpression
     {
-        public List<Regex> Regexes { get; set; }
+        public List<Regex> Regexes { get; set; } = new();
 
-        public Action<System.Text.RegularExpressions.Match, object> Action { get; set; }
+        public Action<Match, object> Action { get; set; } = null!;
     }
 }
