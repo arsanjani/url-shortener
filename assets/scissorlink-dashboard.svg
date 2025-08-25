@@ -1,5 +1,76 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="800" height="400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ScissorLink Dashboard Preview">
-  <rect width="100%" height="100%" fill="#2196f3"/>
-  <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="#ffffff">ScissorLink Dashboard Preview</text>
+<svg width="1200" height="400" viewBox="0 0 1200 400" xmlns="http://www.w3.org/2000/svg" role="img"
+  aria-label="ScissorLink animated dashboard preview">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" x2="1">
+      <stop offset="0%" stop-color="#0f1724" />
+      <stop offset="100%" stop-color="#0b3b63" />
+    </linearGradient>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#000" flood-opacity="0.4" />
+    </filter>
+  </defs>
+
+  <rect width="100%" height="100%" fill="url(#bgGrad)" />
+
+  <!-- Moving chain (represents long URL) -->
+  <g id="chain" transform="translate(50,180)" fill="none" stroke="#9fb8d9" stroke-width="6"
+    stroke-linecap="round">
+    <g id="links" filter="url(#shadow)">
+      <!-- repeated chain links drawn as paths -->
+      <g id="linkGroup">
+        <path d="M0 0 Q20 -30 40 0" stroke="#9fb8d9" stroke-width="10" fill="none" />
+        <path d="M40 0 Q60 30 80 0" stroke="#9fb8d9" stroke-width="10" fill="none" />
+        <path d="M80 0 Q100 -30 120 0" stroke="#9fb8d9" stroke-width="10" fill="none" />
+      </g>
+    </g>
+    <!-- animate the chain moving left to right -->
+    <use href="#linkGroup" x="0">
+      <animateTransform attributeName="transform" type="translate" from="0 0" to="360 0" dur="4s"
+        repeatCount="indefinite" />
+    </use>
+    <use href="#linkGroup" x="360">
+      <animateTransform attributeName="transform" type="translate" from="0 0" to="360 0" dur="4s"
+        begin="-1.2s" repeatCount="indefinite" />
+    </use>
+    <use href="#linkGroup" x="720">
+      <animateTransform attributeName="transform" type="translate" from="0 0" to="360 0" dur="4s"
+        begin="-2.4s" repeatCount="indefinite" />
+    </use>
+  </g>
+
+  <!-- Scissors cutting the chain (brand symbol) -->
+  <g id="scissors" transform="translate(760,140)">
+    <!-- handles -->
+    <circle cx="0" cy="0" r="22" fill="#ffd6b6" />
+    <circle cx="48" cy="0" r="22" fill="#ffd6b6" />
+    <!-- blades -->
+    <g id="bladeGroup" transform="translate(0,0)">
+      <path d="M-10 -5 L70 20 L65 30 L-15 5 Z" fill="#ffffff" stroke="#cfd8e3" stroke-width="2" />
+      <path d="M-10 5 L70 -20 L75 -10 L-15 15 Z" fill="#e6f0fb" stroke="#cfd8e3" stroke-width="2" />
+    </g>
+    <!-- cutting animation: rotate blades to simulate cutting -->
+    <animateTransform href="#bladeGroup" attributeName="transform" type="rotate" from="0 0 0"
+      to="-18 0 0" dur="0.35s" begin="0s;cut.end" id="cut" fill="freeze" />
+    <animateTransform href="#bladeGroup" attributeName="transform" type="rotate" from="-18 0 0"
+      to="0 0 0" dur="0.6s" begin="cut.end+0.2s" fill="freeze" />
+    <!-- invisible trigger rectangle to repeat cut every 3.5s -->
+    <rect x="-40" y="-40" width="200" height="200" fill="transparent">
+      <animate attributeName="opacity" from="0" to="0" dur="3.5s" repeatCount="indefinite" />
+    </rect>
+  </g>
+
+  <!-- Title and CTA -->
+  <g transform="translate(50,60)">
+    <text x="0" y="0" font-family="Inter, Arial, Helvetica, sans-serif" font-size="28"
+      fill="#ffffff" font-weight="700">ScissorLink</text>
+    <text x="0" y="40" font-family="Inter, Arial, Helvetica, sans-serif" font-size="18"
+      fill="#cfe6ff">An elegant alternative to Bitly — short links with analytics</text>
+    <a href="https://lnk.apponline.ir/" target="_blank">
+      <rect x="0" y="60" rx="8" ry="8" width="220" height="42" fill="#ff9f1c" />
+      <text x="110" y="90" text-anchor="middle" font-family="Inter, Arial, Helvetica, sans-serif"
+        font-size="16" fill="#08121a">Try Live Demo</text>
+    </a>
+  </g>
+
 </svg>
