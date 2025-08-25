@@ -1,21 +1,37 @@
 import axios from 'axios';
 import { ShortLinkRequestDto, ShortLinkResponseDto } from '../types/api';
+import { redirectToErrorPage, isErrorStatusCode } from "../utils/errorUtils";
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-const SHORT_URL_BASE = process.env.REACT_APP_SHORT_URL_BASE || 'http://localhost:5000';
+const API_BASE_URL =
+  process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+const SHORT_URL_BASE =
+  process.env.REACT_APP_SHORT_URL_BASE || "http://localhost:5000";
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
-// Add request interceptor for error handling
+// Add response interceptor for error handling
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error('API Error:', error);
+    console.error("API Error:", error);
+
+    // Handle HTTP error responses
+    if (error.response && isErrorStatusCode(error.response.status)) {
+      const statusCode = error.response.status;
+
+      // For certain errors, redirect to error pages
+      if ([403, 404, 500].includes(statusCode)) {
+        redirectToErrorPage(statusCode);
+        return Promise.reject(error);
+      }
+    }
+
+    // For network errors or other issues, let the component handle it
     return Promise.reject(error);
   }
 );
