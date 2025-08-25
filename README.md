@@ -19,7 +19,9 @@
 
 </div>
 
-![ScissorLink Dashboard](https://via.placeholder.com/800x400/2196f3/ffffff?text=ScissorLink+Dashboard+Preview)
+![ScissorLink Dashboard Preview - Advanced URL Shortener](assets/scissorlink-dashboard.svg)
+
+Try the live demo: [ScissorLink live demo — lnk.apponline.ir](https://lnk.apponline.ir/)
 
 > **✨ Cut long URLs down to size with style and intelligence**
 
