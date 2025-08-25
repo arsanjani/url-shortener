@@ -10,6 +10,7 @@ import {
 import { Container, AppBar, Toolbar, Typography, Box } from "@mui/material";
 import LinkIcon from "@mui/icons-material/Link";
 import ShortLinksPage from "./pages/ShortLinksPage";
+import DashboardPage from "./pages/DashboardPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import ServerErrorPage from "./pages/ServerErrorPage";
 import ForbiddenPage from "./pages/ForbiddenPage";
@@ -67,6 +68,7 @@ function App() {
             <Route path="/" element={<AdminLayout />}>
               <Route index element={<ShortLinksPage />} />
               <Route path="shortlinks" element={<ShortLinksPage />} />
+              <Route path="dashboard/:id" element={<DashboardPage />} />
               <Route path="error-demo" element={<ErrorPageDemo />} />
             </Route>
 

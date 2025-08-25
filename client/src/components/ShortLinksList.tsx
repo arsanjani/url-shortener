@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Card,
@@ -18,7 +19,7 @@ import {
   DialogTitle,
   Snackbar,
   Alert,
-} from '@mui/material';
+} from "@mui/material";
 import {
   Launch as LaunchIcon,
   MoreVert as MoreVertIcon,
@@ -28,9 +29,9 @@ import {
   VisibilityOff as VisibilityOffIcon,
   ContentCopy as ContentCopyIcon,
   BarChart as BarChartIcon,
-} from '@mui/icons-material';
-import { ShortLinkResponseDto } from '../types/api';
-import { ApiService } from '../services/apiService';
+} from "@mui/icons-material";
+import { ShortLinkResponseDto } from "../types/api";
+import { ApiService } from "../services/apiService";
 
 interface ShortLinksListProps {
   shortLinks: ShortLinkResponseDto[];
@@ -43,12 +44,22 @@ const ShortLinksList: React.FC<ShortLinksListProps> = ({
   onUpdate,
   onDelete,
 }) => {
+  const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [selectedLink, setSelectedLink] = useState<ShortLinkResponseDto | null>(null);
+  const [selectedLink, setSelectedLink] = useState<ShortLinkResponseDto | null>(
+    null
+  );
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success" as "success" | "error",
+  });
 
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, link: ShortLinkResponseDto) => {
+  const handleMenuOpen = (
+    event: React.MouseEvent<HTMLElement>,
+    link: ShortLinkResponseDto
+  ) => {
     setAnchorEl(event.currentTarget);
     setSelectedLink(link);
   };
@@ -61,9 +72,17 @@ const ShortLinksList: React.FC<ShortLinksListProps> = ({
   const handleCopyToClipboard = async (shortUrl: string) => {
     try {
       await navigator.clipboard.writeText(shortUrl);
-      setSnackbar({ open: true, message: 'Short URL copied to clipboard!', severity: 'success' });
+      setSnackbar({
+        open: true,
+        message: "Short URL copied to clipboard!",
+        severity: "success",
+      });
     } catch (err) {
-      setSnackbar({ open: true, message: 'Failed to copy URL', severity: 'error' });
+      setSnackbar({
+        open: true,
+        message: "Failed to copy URL",
+        severity: "error",
+      });
     }
     handleMenuClose();
   };
@@ -74,13 +93,19 @@ const ShortLinksList: React.FC<ShortLinksListProps> = ({
     try {
       const updatedLink = await ApiService.togglePublishStatus(selectedLink.id);
       onUpdate(updatedLink);
-      setSnackbar({ 
-        open: true, 
-        message: `Link ${updatedLink.isPublish ? 'published' : 'unpublished'} successfully!`, 
-        severity: 'success' 
+      setSnackbar({
+        open: true,
+        message: `Link ${
+          updatedLink.isPublish ? "published" : "unpublished"
+        } successfully!`,
+        severity: "success",
       });
     } catch (err) {
-      setSnackbar({ open: true, message: 'Failed to update publish status', severity: 'error' });
+      setSnackbar({
+        open: true,
+        message: "Failed to update publish status",
+        severity: "error",
+      });
     }
     handleMenuClose();
   };
@@ -96,9 +121,17 @@ const ShortLinksList: React.FC<ShortLinksListProps> = ({
     try {
       await ApiService.deleteShortLink(selectedLink.id);
       onDelete(selectedLink.id);
-      setSnackbar({ open: true, message: 'Link deleted successfully!', severity: 'success' });
+      setSnackbar({
+        open: true,
+        message: "Link deleted successfully!",
+        severity: "success",
+      });
     } catch (err) {
-      setSnackbar({ open: true, message: 'Failed to delete link', severity: 'error' });
+      setSnackbar({
+        open: true,
+        message: "Failed to delete link",
+        severity: "error",
+      });
     }
     setDeleteDialogOpen(false);
     setSelectedLink(null);
@@ -106,16 +139,20 @@ const ShortLinksList: React.FC<ShortLinksListProps> = ({
 
   const handleTestLink = (token: string) => {
     const shortUrl = ApiService.buildShortUrl(token);
-    window.open(shortUrl, '_blank');
+    window.open(shortUrl, "_blank");
+  };
+
+  const handleViewDashboard = (linkId: number) => {
+    navigate(`/dashboard/${linkId}`);
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -124,26 +161,31 @@ const ShortLinksList: React.FC<ShortLinksListProps> = ({
       <Grid container spacing={3}>
         {shortLinks.map((link) => {
           const shortUrl = ApiService.buildShortUrl(link.token);
-          
+
           return (
             <Grid item xs={12} md={6} lg={4} key={link.id}>
-              <Card 
-                sx={{ 
-                  height: '100%', 
-                  display: 'flex', 
-                  flexDirection: 'column',
-                  transition: 'transform 0.2s, box-shadow 0.2s',
-                  '&:hover': {
-                    transform: 'translateY(-2px)',
+              <Card
+                sx={{
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  transition: "transform 0.2s, box-shadow 0.2s",
+                  "&:hover": {
+                    transform: "translateY(-2px)",
                     boxShadow: 4,
-                  }
+                  },
                 }}
               >
                 <CardContent sx={{ flexGrow: 1 }}>
-                  <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
+                  <Box
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="flex-start"
+                    mb={2}
+                  >
                     <Box flex={1}>
                       <Typography variant="h6" component="h2" noWrap>
-                        {link.title || 'Untitled'}
+                        {link.title || "Untitled"}
                       </Typography>
                       <Typography variant="body2" color="text.secondary" noWrap>
                         {link.originLink}
@@ -158,7 +200,11 @@ const ShortLinksList: React.FC<ShortLinksListProps> = ({
                   </Box>
 
                   <Box mb={2}>
-                    <Typography variant="body2" color="primary" sx={{ wordBreak: 'break-all' }}>
+                    <Typography
+                      variant="body2"
+                      color="primary"
+                      sx={{ wordBreak: "break-all" }}
+                    >
                       {shortUrl}
                     </Typography>
                   </Box>
@@ -166,15 +212,29 @@ const ShortLinksList: React.FC<ShortLinksListProps> = ({
                   <Box display="flex" gap={1} mb={2} flexWrap="wrap">
                     <Chip
                       size="small"
-                      label={link.isPublish ? 'Published' : 'Draft'}
-                      color={link.isPublish ? 'success' : 'default'}
-                      icon={link.isPublish ? <VisibilityIcon /> : <VisibilityOffIcon />}
+                      label={link.isPublish ? "Published" : "Draft"}
+                      color={link.isPublish ? "success" : "default"}
+                      icon={
+                        link.isPublish ? (
+                          <VisibilityIcon />
+                        ) : (
+                          <VisibilityOffIcon />
+                        )
+                      }
                     />
                     <Chip
                       size="small"
                       label={`${link.clickCount} clicks`}
                       icon={<BarChartIcon />}
                       variant="outlined"
+                      clickable
+                      onClick={() => handleViewDashboard(link.id)}
+                      sx={{
+                        cursor: "pointer",
+                        "&:hover": {
+                          backgroundColor: "action.hover",
+                        },
+                      }}
                     />
                   </Box>
 
@@ -182,7 +242,11 @@ const ShortLinksList: React.FC<ShortLinksListProps> = ({
                     Created: {formatDate(link.createAdminDate)}
                   </Typography>
                   {link.editAdminDate && (
-                    <Typography variant="caption" color="text.secondary" display="block">
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      display="block"
+                    >
                       Updated: {formatDate(link.editAdminDate)}
                     </Typography>
                   )}
@@ -210,15 +274,25 @@ const ShortLinksList: React.FC<ShortLinksListProps> = ({
         open={Boolean(anchorEl)}
         onClose={handleMenuClose}
       >
-        <MenuItem onClick={() => handleCopyToClipboard(ApiService.buildShortUrl(selectedLink?.token || ''))}>
+        <MenuItem
+          onClick={() =>
+            handleCopyToClipboard(
+              ApiService.buildShortUrl(selectedLink?.token || "")
+            )
+          }
+        >
           <ContentCopyIcon sx={{ mr: 1 }} />
           Copy Short URL
         </MenuItem>
         <MenuItem onClick={handleTogglePublish}>
-          {selectedLink?.isPublish ? <VisibilityOffIcon sx={{ mr: 1 }} /> : <VisibilityIcon sx={{ mr: 1 }} />}
-          {selectedLink?.isPublish ? 'Unpublish' : 'Publish'}
+          {selectedLink?.isPublish ? (
+            <VisibilityOffIcon sx={{ mr: 1 }} />
+          ) : (
+            <VisibilityIcon sx={{ mr: 1 }} />
+          )}
+          {selectedLink?.isPublish ? "Unpublish" : "Publish"}
         </MenuItem>
-        <MenuItem onClick={handleDeleteClick} sx={{ color: 'error.main' }}>
+        <MenuItem onClick={handleDeleteClick} sx={{ color: "error.main" }}>
           <DeleteIcon sx={{ mr: 1 }} />
           Delete
         </MenuItem>
@@ -231,7 +305,8 @@ const ShortLinksList: React.FC<ShortLinksListProps> = ({
         <DialogTitle>Delete Short Link</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete "{selectedLink?.title || 'this link'}"? This action cannot be undone.
+            Are you sure you want to delete "
+            {selectedLink?.title || "this link"}"? This action cannot be undone.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -245,9 +320,12 @@ const ShortLinksList: React.FC<ShortLinksListProps> = ({
       <Snackbar
         open={snackbar.open}
         autoHideDuration={4000}
-        onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
       >
-        <Alert severity={snackbar.severity} onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}>
+        <Alert
+          severity={snackbar.severity}
+          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+        >
           {snackbar.message}
         </Alert>
       </Snackbar>

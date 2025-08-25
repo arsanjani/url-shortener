@@ -175,6 +175,80 @@ namespace ScissorLink.Controllers
             }
         }
 
+        [HttpGet("shortlinks/{id}/statistics")]
+        public async Task<ActionResult<object>> GetShortLinkStatistics(int id)
+        {
+            try
+            {
+                var shortLink = await _processService.GetById(id);
+                if (shortLink == null)
+                {
+                    return NotFound($"Short link with ID {id} not found.");
+                }
+
+                var details = shortLink.Details ?? new List<DtoShortLinkDetail>();
+
+                // Group by date for daily statistics
+                var dailyStats = details
+                    .GroupBy(d => d.VisitDate.Date)
+                    .Select(g => new { Date = g.Key, Clicks = g.Count() })
+                    .OrderBy(x => x.Date)
+                    .ToList();
+
+                // Group by country
+                var countryStats = details
+                    .Where(d => !string.IsNullOrEmpty(d.Country))
+                    .GroupBy(d => d.Country)
+                    .Select(g => new { Country = g.Key, Clicks = g.Count() })
+                    .OrderByDescending(x => x.Clicks)
+                    .Take(10)
+                    .ToList();
+
+                // Group by OS
+                var osStats = details
+                    .Where(d => !string.IsNullOrEmpty(d.OS))
+                    .GroupBy(d => d.OS)
+                    .Select(g => new { OS = g.Key, Clicks = g.Count() })
+                    .OrderByDescending(x => x.Clicks)
+                    .ToList();
+
+                // Group by Browser
+                var browserStats = details
+                    .Where(d => !string.IsNullOrEmpty(d.Browser))
+                    .GroupBy(d => d.Browser)
+                    .Select(g => new { Browser = g.Key, Clicks = g.Count() })
+                    .OrderByDescending(x => x.Clicks)
+                    .ToList();
+
+                // Group by hour for hourly distribution
+                var hourlyStats = details
+                    .GroupBy(d => d.VisitDate.Hour)
+                    .Select(g => new { Hour = g.Key, Clicks = g.Count() })
+                    .OrderBy(x => x.Hour)
+                    .ToList();
+
+                var statistics = new
+                {
+                    ShortLink = MapToResponseDto(shortLink),
+                    TotalClicks = details.Count,
+                    UniqueCountries = details.Where(d => !string.IsNullOrEmpty(d.Country)).Select(d => d.Country).Distinct().Count(),
+                    DailyStats = dailyStats,
+                    CountryStats = countryStats,
+                    OSStats = osStats,
+                    BrowserStats = browserStats,
+                    HourlyStats = hourlyStats,
+                    FirstClick = details.Any() ? details.Min(d => d.VisitDate) : (DateTime?)null,
+                    LastClick = details.Any() ? details.Max(d => d.VisitDate) : (DateTime?)null
+                };
+
+                return Ok(statistics);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
         private static ShortLinkResponseDto MapToResponseDto(DtoShortLink shortLink)
         {
             return new ShortLinkResponseDto

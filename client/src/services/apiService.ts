@@ -1,5 +1,9 @@
 import axios from 'axios';
-import { ShortLinkRequestDto, ShortLinkResponseDto } from '../types/api';
+import {
+  ShortLinkRequestDto,
+  ShortLinkResponseDto,
+  StatisticsResponseDto,
+} from "../types/api";
 import { redirectToErrorPage, isErrorStatusCode } from "../utils/errorUtils";
 
 const API_BASE_URL =
@@ -39,25 +43,40 @@ apiClient.interceptors.response.use(
 export class ApiService {
   // Get all short links
   static async getAllShortLinks(): Promise<ShortLinkResponseDto[]> {
-    const response = await apiClient.get<ShortLinkResponseDto[]>('/admin/shortlinks');
+    const response = await apiClient.get<ShortLinkResponseDto[]>(
+      "/admin/shortlinks"
+    );
     return response.data;
   }
 
   // Get a specific short link by ID
   static async getShortLink(id: number): Promise<ShortLinkResponseDto> {
-    const response = await apiClient.get<ShortLinkResponseDto>(`/admin/shortlinks/${id}`);
+    const response = await apiClient.get<ShortLinkResponseDto>(
+      `/admin/shortlinks/${id}`
+    );
     return response.data;
   }
 
   // Create a new short link
-  static async createShortLink(shortLink: ShortLinkRequestDto): Promise<ShortLinkResponseDto> {
-    const response = await apiClient.post<ShortLinkResponseDto>('/admin/shortlinks', shortLink);
+  static async createShortLink(
+    shortLink: ShortLinkRequestDto
+  ): Promise<ShortLinkResponseDto> {
+    const response = await apiClient.post<ShortLinkResponseDto>(
+      "/admin/shortlinks",
+      shortLink
+    );
     return response.data;
   }
 
   // Update an existing short link
-  static async updateShortLink(id: number, shortLink: ShortLinkRequestDto): Promise<ShortLinkResponseDto> {
-    const response = await apiClient.put<ShortLinkResponseDto>(`/admin/shortlinks/${id}`, shortLink);
+  static async updateShortLink(
+    id: number,
+    shortLink: ShortLinkRequestDto
+  ): Promise<ShortLinkResponseDto> {
+    const response = await apiClient.put<ShortLinkResponseDto>(
+      `/admin/shortlinks/${id}`,
+      shortLink
+    );
     return response.data;
   }
 
@@ -68,7 +87,9 @@ export class ApiService {
 
   // Toggle publish status
   static async togglePublishStatus(id: number): Promise<ShortLinkResponseDto> {
-    const response = await apiClient.post<ShortLinkResponseDto>(`/admin/shortlinks/${id}/toggle-publish`);
+    const response = await apiClient.post<ShortLinkResponseDto>(
+      `/admin/shortlinks/${id}/toggle-publish`
+    );
     return response.data;
   }
 
@@ -80,5 +101,15 @@ export class ApiService {
   // Build the full short URL for testing
   static buildShortUrl(token: string): string {
     return `${this.getBackendDomain()}/${token}`;
+  }
+
+  // Get statistics for a specific short link
+  static async getShortLinkStatistics(
+    id: number
+  ): Promise<StatisticsResponseDto> {
+    const response = await apiClient.get<StatisticsResponseDto>(
+      `/admin/shortlinks/${id}/statistics`
+    );
+    return response.data;
   }
 }

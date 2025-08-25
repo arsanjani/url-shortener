@@ -26,6 +26,19 @@ export interface ShortLinkResponseDto {
   recentClicks: ShortLinkDetailDto[];
 }
 
+export interface StatisticsResponseDto {
+  shortLink: ShortLinkResponseDto;
+  totalClicks: number;
+  uniqueCountries: number;
+  dailyStats: Array<{ date: string; clicks: number }>;
+  countryStats: Array<{ country: string; clicks: number }>;
+  osStats: Array<{ os: string; clicks: number }>;
+  browserStats: Array<{ browser: string; clicks: number }>;
+  hourlyStats: Array<{ hour: number; clicks: number }>;
+  firstClick?: string;
+  lastClick?: string;
+}
+
 export interface ApiResponse<T> {
   data: T;
   success: boolean;
