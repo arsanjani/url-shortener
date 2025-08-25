@@ -1,5 +1,5 @@
 using Xunit;
-using akhr.ir.UserAgent;
+using ScissorLink.UserAgent;
 
 namespace ScissorLink.Tests.UserAgent;
 
@@ -9,7 +9,7 @@ public class UserAgentTests
     public void Constructor_WithNullUserAgent_ShouldNotThrow()
     {
         // Arrange & Act & Assert
-        var exception = Record.Exception(() => new akhr.ir.UserAgent.UserAgent(null!));
+        var exception = Record.Exception(() => new ScissorLink.UserAgent.UserAgent(null!));
         Assert.Null(exception);
     }
 
@@ -17,7 +17,7 @@ public class UserAgentTests
     public void Constructor_WithEmptyUserAgent_ShouldNotThrow()
     {
         // Arrange & Act & Assert
-        var exception = Record.Exception(() => new akhr.ir.UserAgent.UserAgent(""));
+        var exception = Record.Exception(() => new ScissorLink.UserAgent.UserAgent(""));
         Assert.Null(exception);
     }
 
@@ -28,7 +28,7 @@ public class UserAgentTests
         var userAgentString = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36";
 
         // Act
-        var userAgent = new akhr.ir.UserAgent.UserAgent(userAgentString);
+        var userAgent = new ScissorLink.UserAgent.UserAgent(userAgentString);
 
         // Assert
         Assert.NotNull(userAgent.Browser);
@@ -40,7 +40,7 @@ public class UserAgentTests
     {
         // Arrange
         var userAgentString = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36";
-        var userAgent = new akhr.ir.UserAgent.UserAgent(userAgentString);
+        var userAgent = new ScissorLink.UserAgent.UserAgent(userAgentString);
 
         // Act
         var browser1 = userAgent.Browser;
@@ -55,7 +55,7 @@ public class UserAgentTests
     {
         // Arrange
         var userAgentString = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36";
-        var userAgent = new akhr.ir.UserAgent.UserAgent(userAgentString);
+        var userAgent = new ScissorLink.UserAgent.UserAgent(userAgentString);
 
         // Act
         var os1 = userAgent.OS;

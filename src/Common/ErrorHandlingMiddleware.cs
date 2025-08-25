@@ -7,9 +7,9 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using akhr.ir.Models;
+using ScissorLink.Models;
 
-namespace akhr.ir.Common
+namespace ScissorLink.Common
 {
     // You may need to install the Microsoft.AspNetCore.Http.Abstractions package into your project
     public class ErrorHandlingMiddleware

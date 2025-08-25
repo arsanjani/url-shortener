@@ -1,6 +1,6 @@
 using Xunit;
 using Microsoft.AspNetCore.Mvc;
-using akhr.ir.Controllers;
+using ScissorLink.Controllers;
 
 namespace ScissorLink.Tests.Controllers;
 

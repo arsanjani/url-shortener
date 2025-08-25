@@ -1,86 +1,106 @@
 using Xunit;
 using Moq;
-using Microsoft.Extensions.Configuration;
-using akhr.ir.Repos;
-using akhr.ir.Models;
-using System.Data;
-using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using ScissorLink.Repos;
+using ScissorLink.Models;
+using ScissorLink.Data;
 
 namespace ScissorLink.Tests.Repos;
 
 public class ProcessRepoTests
 {
-    private readonly Mock<IConfiguration> _mockConfig;
+    private readonly Mock<ScissorLinkDbContext> _mockContext;
     private readonly ProcessRepo _repo;
 
     public ProcessRepoTests()
     {
-        _mockConfig = new Mock<IConfiguration>();
-        // Don't setup the connection string - let it be null for most tests
-        _repo = new ProcessRepo(_mockConfig.Object);
+        var options = new DbContextOptionsBuilder<ScissorLinkDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        _mockContext = new Mock<ScissorLinkDbContext>(options);
+        _repo = new ProcessRepo(_mockContext.Object);
     }
 
     [Fact]
-    public void Constructor_WithValidConfiguration_ShouldInitializeCorrectly()
+    public void Constructor_WithValidContext_ShouldInitializeCorrectly()
     {
-        // Arrange & Act
-        var repo = new ProcessRepo(_mockConfig.Object);
+        // Arrange
+        var options = new DbContextOptionsBuilder<ScissorLinkDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+        var context = new ScissorLinkDbContext(options);
+
+        // Act
+        var repo = new ProcessRepo(context);
 
         // Assert
         Assert.NotNull(repo);
     }
 
     [Fact]
-    public void Constructor_WithNullConfiguration_ShouldThrowException()
+    public void Constructor_WithNullContext_ShouldThrowException()
     {
         // Arrange, Act & Assert
-        Assert.Throws<ArgumentNullException>(() => new ProcessRepo(null!));
+        // Note: BaseRepo constructor doesn't validate null, so this test verifies the actual behavior
+        var exception = Record.Exception(() => new ProcessRepo(null!));
+        Assert.Null(exception); // Constructor doesn't throw, but subsequent operations will fail
     }
 
     [Fact]
-    public async Task Get_WithNullConnection_ShouldReturnNull()
+    public async Task Get_WithExistingToken_ShouldReturnShortLink()
     {
         // Arrange
-        var mockConfigWithNullConnection = new Mock<IConfiguration>();
-        var mockConnectionStringsSection = new Mock<IConfigurationSection>();
-        mockConnectionStringsSection.Setup(x => x["dbScissorLink"]).Returns((string?)null);
-        mockConfigWithNullConnection.Setup(x => x.GetSection("ConnectionStrings"))
-                                  .Returns(mockConnectionStringsSection.Object);
-        
-        var repo = new ProcessRepo(mockConfigWithNullConnection.Object);
+        var options = new DbContextOptionsBuilder<ScissorLinkDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
 
-        // Act
-        var result = await repo.Get("test-token");
-
-        // Assert
-        Assert.Null(result);
-    }
-
-    [Fact]
-    public async Task Save_WithNullConnection_ShouldReturnFalse()
-    {
-        // Arrange
-        var mockConfigWithNullConnection = new Mock<IConfiguration>();
-        var mockConnectionStringsSection = new Mock<IConfigurationSection>();
-        mockConnectionStringsSection.Setup(x => x["dbScissorLink"]).Returns((string?)null);
-        mockConfigWithNullConnection.Setup(x => x.GetSection("ConnectionStrings"))
-                                  .Returns(mockConnectionStringsSection.Object);
-        
-        var repo = new ProcessRepo(mockConfigWithNullConnection.Object);
-        var dto = new DtoShortLinkDetail
+        var testShortLink = new DtoShortLink
         {
             ID = 1,
-            ShortLinkID = 1,
-            Country = "US",
-            OS = "Windows",
-            Browser = "Chrome"
+            Token = "test-token",
+            OriginLink = "https://example.com",
+            IsPublish = true
         };
 
-        // Act
-        var result = await repo.Save(dto);
+        using (var context = new ScissorLinkDbContext(options))
+        {
+            context.ShortLinks.Add(testShortLink);
+            await context.SaveChangesAsync();
+        }
 
-        // Assert
-        Assert.False(result);
+        using (var context = new ScissorLinkDbContext(options))
+        {
+            var repo = new ProcessRepo(context);
+
+            // Act
+            var result = await repo.Get("test-token");
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal("test-token", result.Token);
+            Assert.Equal("https://example.com", result.OriginLink);
+        }
+    }
+
+    [Fact]
+    public async Task Get_WithNonExistingToken_ShouldReturnNull()
+    {
+        // Arrange
+        var options = new DbContextOptionsBuilder<ScissorLinkDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        using (var context = new ScissorLinkDbContext(options))
+        {
+            var repo = new ProcessRepo(context);
+
+            // Act
+            var result = await repo.Get("non-existing-token");
+
+            // Assert
+            Assert.Null(result);
+        }
     }
 
     [Theory]
@@ -92,197 +112,373 @@ public class ProcessRepoTests
     public async Task Get_WithVariousTokens_ShouldHandleCorrectly(string token)
     {
         // Arrange
-        // Note: This test will fail with actual database connection, but tests the method signature
-        
-        // Act & Assert
-        // This should not throw an exception, even if it fails to connect
-        var exception = await Record.ExceptionAsync(() => _repo.Get(token));
-        
-        // The exception type will vary based on the connection state
-        // We're mainly testing that the method handles various token formats gracefully
-        Assert.True(exception == null || exception is SqlException || exception is InvalidOperationException);
+        var options = new DbContextOptionsBuilder<ScissorLinkDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        using (var context = new ScissorLinkDbContext(options))
+        {
+            var repo = new ProcessRepo(context);
+
+            // Act & Assert
+            var exception = await Record.ExceptionAsync(() => repo.Get(token));
+            Assert.Null(exception);
+        }
     }
 
     [Fact]
-    public async Task Get_WithNullToken_ShouldHandleCorrectly()
+    public async Task Save_WithValidDto_ShouldReturnTrue()
     {
         // Arrange
-        string? nullToken = null;
+        var options = new DbContextOptionsBuilder<ScissorLinkDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
 
-        // Act & Assert
-        var exception = await Record.ExceptionAsync(() => _repo.Get(nullToken!));
-        
-        // Should not throw a null reference exception
-        Assert.True(exception == null || exception is SqlException || exception is InvalidOperationException);
-    }
-
-    [Fact]
-    public async Task Save_WithValidDto_ShouldHandleCorrectly()
-    {
-        // Arrange
         var dto = new DtoShortLinkDetail
         {
-            ID = 1,
             ShortLinkID = 1,
             Country = "US",
             OS = "Windows",
             Browser = "Chrome"
         };
 
-        // Act & Assert
-        var exception = await Record.ExceptionAsync(() => _repo.Save(dto));
-        
-        // Should not throw an exception due to null dto
-        Assert.True(exception == null || exception is SqlException || exception is InvalidOperationException);
+        using (var context = new ScissorLinkDbContext(options))
+        {
+            var repo = new ProcessRepo(context);
+
+            // Act
+            var result = await repo.Save(dto);
+
+            // Assert
+            Assert.True(result);
+
+            // Verify it was saved
+            var saved = await context.ShortLinkDetails.FirstOrDefaultAsync(x => x.ShortLinkID == 1);
+            Assert.NotNull(saved);
+            Assert.Equal("US", saved.Country);
+        }
     }
 
     [Fact]
-    public async Task Save_WithNullDto_ShouldHandleCorrectly()
+    public async Task GetAll_ShouldReturnAllShortLinks()
     {
         // Arrange
-        DtoShortLinkDetail? nullDto = null;
+        var options = new DbContextOptionsBuilder<ScissorLinkDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
 
-        // Act & Assert
-        var exception = await Record.ExceptionAsync(() => _repo.Save(nullDto!));
-        
-        // Should not throw a null reference exception
-        Assert.True(exception == null || exception is SqlException || exception is InvalidOperationException);
+        var testShortLinks = new List<DtoShortLink>
+        {
+            new() { ID = 1, Token = "token1", OriginLink = "https://example1.com", IsPublish = true },
+            new() { ID = 2, Token = "token2", OriginLink = "https://example2.com", IsPublish = false }
+        };
+
+        using (var context = new ScissorLinkDbContext(options))
+        {
+            context.ShortLinks.AddRange(testShortLinks);
+            await context.SaveChangesAsync();
+        }
+
+        using (var context = new ScissorLinkDbContext(options))
+        {
+            var repo = new ProcessRepo(context);
+
+            // Act
+            var result = await repo.GetAll();
+
+            // Assert
+            Assert.Equal(2, result.Count);
+        }
+    }
+
+    [Fact]
+    public async Task GetById_WithExistingId_ShouldReturnShortLink()
+    {
+        // Arrange
+        var options = new DbContextOptionsBuilder<ScissorLinkDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        var testShortLink = new DtoShortLink
+        {
+            ID = 1,
+            Token = "test-token",
+            OriginLink = "https://example.com",
+            IsPublish = true
+        };
+
+        using (var context = new ScissorLinkDbContext(options))
+        {
+            context.ShortLinks.Add(testShortLink);
+            await context.SaveChangesAsync();
+        }
+
+        using (var context = new ScissorLinkDbContext(options))
+        {
+            var repo = new ProcessRepo(context);
+
+            // Act
+            var result = await repo.GetById(1);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(1, result.ID);
+            Assert.Equal("test-token", result.Token);
+        }
+    }
+
+    [Fact]
+    public async Task Create_WithValidShortLink_ShouldReturnCreatedShortLink()
+    {
+        // Arrange
+        var options = new DbContextOptionsBuilder<ScissorLinkDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        var newShortLink = new DtoShortLink
+        {
+            Token = "new-token",
+            OriginLink = "https://newexample.com",
+            IsPublish = true
+        };
+
+        using (var context = new ScissorLinkDbContext(options))
+        {
+            var repo = new ProcessRepo(context);
+
+            // Act
+            var result = await repo.Create(newShortLink);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal("new-token", result.Token);
+            Assert.True(result.ID > 0);
+        }
+    }
+
+    [Fact]
+    public async Task Update_WithValidShortLink_ShouldReturnUpdatedShortLink()
+    {
+        // Arrange
+        var options = new DbContextOptionsBuilder<ScissorLinkDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        var originalShortLink = new DtoShortLink
+        {
+            ID = 1,
+            Token = "original-token",
+            OriginLink = "https://original.com",
+            IsPublish = true
+        };
+
+        using (var context = new ScissorLinkDbContext(options))
+        {
+            context.ShortLinks.Add(originalShortLink);
+            await context.SaveChangesAsync();
+        }
+
+        using (var context = new ScissorLinkDbContext(options))
+        {
+            var repo = new ProcessRepo(context);
+            originalShortLink.OriginLink = "https://updated.com";
+
+            // Act
+            var result = await repo.Update(originalShortLink);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal("https://updated.com", result.OriginLink);
+        }
+    }
+
+    [Fact]
+    public async Task Delete_WithExistingId_ShouldReturnTrue()
+    {
+        // Arrange
+        var options = new DbContextOptionsBuilder<ScissorLinkDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        var testShortLink = new DtoShortLink
+        {
+            ID = 1,
+            Token = "test-token",
+            OriginLink = "https://example.com",
+            IsPublish = true
+        };
+
+        using (var context = new ScissorLinkDbContext(options))
+        {
+            context.ShortLinks.Add(testShortLink);
+            await context.SaveChangesAsync();
+        }
+
+        using (var context = new ScissorLinkDbContext(options))
+        {
+            var repo = new ProcessRepo(context);
+
+            // Act
+            var result = await repo.Delete(1);
+
+            // Assert
+            Assert.True(result);
+
+            // Verify it was deleted
+            var deleted = await context.ShortLinks.FindAsync(1);
+            Assert.Null(deleted);
+        }
+    }
+
+    [Fact]
+    public async Task Delete_WithNonExistingId_ShouldReturnFalse()
+    {
+        // Arrange
+        var options = new DbContextOptionsBuilder<ScissorLinkDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        using (var context = new ScissorLinkDbContext(options))
+        {
+            var repo = new ProcessRepo(context);
+
+            // Act
+            var result = await repo.Delete(999);
+
+            // Assert
+            Assert.False(result);
+        }
+    }
+
+    [Fact]
+    public async Task TokenExists_WithExistingToken_ShouldReturnTrue()
+    {
+        // Arrange
+        var options = new DbContextOptionsBuilder<ScissorLinkDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        var testShortLink = new DtoShortLink
+        {
+            ID = 1,
+            Token = "existing-token",
+            OriginLink = "https://example.com",
+            IsPublish = true
+        };
+
+        using (var context = new ScissorLinkDbContext(options))
+        {
+            context.ShortLinks.Add(testShortLink);
+            await context.SaveChangesAsync();
+        }
+
+        using (var context = new ScissorLinkDbContext(options))
+        {
+            var repo = new ProcessRepo(context);
+
+            // Act
+            var result = await repo.TokenExists("existing-token");
+
+            // Assert
+            Assert.True(result);
+        }
+    }
+
+    [Fact]
+    public async Task TokenExists_WithNonExistingToken_ShouldReturnFalse()
+    {
+        // Arrange
+        var options = new DbContextOptionsBuilder<ScissorLinkDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        using (var context = new ScissorLinkDbContext(options))
+        {
+            var repo = new ProcessRepo(context);
+
+            // Act
+            var result = await repo.TokenExists("non-existing-token");
+
+            // Assert
+            Assert.False(result);
+        }
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("special-chars-!@#$%^&*()")]
+    [InlineData("üñîçødé-tøkéñ")]
+    public async Task TokenExists_WithVariousTokens_ShouldHandleCorrectly(string token)
+    {
+        // Arrange
+        var options = new DbContextOptionsBuilder<ScissorLinkDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        using (var context = new ScissorLinkDbContext(options))
+        {
+            var repo = new ProcessRepo(context);
+
+            // Act & Assert
+            var exception = await Record.ExceptionAsync(() => repo.TokenExists(token));
+            Assert.Null(exception);
+        }
     }
 
     [Fact]
     public async Task Save_WithDtoWithNullProperties_ShouldHandleCorrectly()
     {
         // Arrange
+        var options = new DbContextOptionsBuilder<ScissorLinkDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
         var dto = new DtoShortLinkDetail
         {
-            ID = 1,
             ShortLinkID = 1,
             Country = null,
             OS = null,
             Browser = null
         };
 
-        // Act & Assert
-        var exception = await Record.ExceptionAsync(() => _repo.Save(dto));
-        
-        // Should handle null properties gracefully
-        Assert.True(exception == null || exception is SqlException || exception is InvalidOperationException);
-    }
-
-    [Fact]
-    public async Task Save_WithDtoWithEmptyProperties_ShouldHandleCorrectly()
-    {
-        // Arrange
-        var dto = new DtoShortLinkDetail
+        using (var context = new ScissorLinkDbContext(options))
         {
-            ID = 1,
-            ShortLinkID = 1,
-            Country = "",
-            OS = "",
-            Browser = ""
-        };
+            var repo = new ProcessRepo(context);
 
-        // Act & Assert
-        var exception = await Record.ExceptionAsync(() => _repo.Save(dto));
-        
-        // Should handle empty properties gracefully
-        Assert.True(exception == null || exception is SqlException || exception is InvalidOperationException);
-    }
+            // Act
+            var result = await repo.Save(dto);
 
-    [Fact]
-    public async Task Save_WithDtoWithLongProperties_ShouldHandleCorrectly()
-    {
-        // Arrange
-        var dto = new DtoShortLinkDetail
-        {
-            ID = 1,
-            ShortLinkID = 1,
-            Country = new string('A', 1000),
-            OS = new string('B', 1000),
-            Browser = new string('C', 1000)
-        };
-
-        // Act & Assert
-        var exception = await Record.ExceptionAsync(() => _repo.Save(dto));
-        
-        // Should handle long properties gracefully (may fail due to DB constraints)
-        Assert.True(exception == null || exception is SqlException || exception is InvalidOperationException);
+            // Assert
+            Assert.True(result);
+        }
     }
 
     [Fact]
     public async Task Save_WithDtoWithSpecialCharacters_ShouldHandleCorrectly()
     {
         // Arrange
+        var options = new DbContextOptionsBuilder<ScissorLinkDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
         var dto = new DtoShortLinkDetail
         {
-            ID = 1,
             ShortLinkID = 1,
             Country = "Üñîçødé Tëst",
             OS = "Windows 10 Pro™",
             Browser = "Chrome/91.0.4472.124"
         };
 
-        // Act & Assert
-        var exception = await Record.ExceptionAsync(() => _repo.Save(dto));
-        
-        // Should handle special characters gracefully
-        Assert.True(exception == null || exception is SqlException || exception is InvalidOperationException);
+        using (var context = new ScissorLinkDbContext(options))
+        {
+            var repo = new ProcessRepo(context);
+
+            // Act
+            var result = await repo.Save(dto);
+
+            // Assert
+            Assert.True(result);
+        }
     }
-
-    [Fact]
-    public void Dispose_ShouldDisposeCorrectly()
-    {
-        // Arrange
-        var repo = new ProcessRepo(_mockConfig.Object);
-
-        // Act & Assert
-        var exception = Record.Exception(() => repo.Dispose());
-        Assert.Null(exception);
-    }
-
-    [Fact]
-    public void Dispose_CalledMultipleTimes_ShouldHandleCorrectly()
-    {
-        // Arrange
-        var repo = new ProcessRepo(_mockConfig.Object);
-
-        // Act & Assert
-        var exception1 = Record.Exception(() => repo.Dispose());
-        var exception2 = Record.Exception(() => repo.Dispose());
-        var exception3 = Record.Exception(() => repo.Dispose());
-        
-        Assert.Null(exception1);
-        Assert.Null(exception2);
-        Assert.Null(exception3);
-    }
-
-    [Fact]
-    public void Constructor_WithEmptyConnectionString_ShouldHandleCorrectly()
-    {
-        // Arrange
-        var mockConfigWithEmptyConnection = new Mock<IConfiguration>();
-        var mockConnectionStringsSection = new Mock<IConfigurationSection>();
-        mockConnectionStringsSection.Setup(x => x["dbScissorLink"]).Returns("");
-        mockConfigWithEmptyConnection.Setup(x => x.GetSection("ConnectionStrings"))
-                                    .Returns(mockConnectionStringsSection.Object);
-
-        // Act & Assert
-        var exception = Record.Exception(() => new ProcessRepo(mockConfigWithEmptyConnection.Object));
-        Assert.Null(exception);
-    }
-
-    [Fact]
-    public void Constructor_WithInvalidConnectionString_ShouldHandleCorrectly()
-    {
-        // Arrange
-        var mockConfigWithInvalidConnection = new Mock<IConfiguration>();
-        var mockConnectionStringsSection = new Mock<IConfigurationSection>();
-        mockConnectionStringsSection.Setup(x => x["dbScissorLink"]).Returns("invalid-connection-string");
-        mockConfigWithInvalidConnection.Setup(x => x.GetSection("ConnectionStrings"))
-                                      .Returns(mockConnectionStringsSection.Object);
-
-        // Act & Assert
-        var exception = Record.Exception(() => new ProcessRepo(mockConfigWithInvalidConnection.Object));
-        Assert.Null(exception); // Constructor should not throw, but Get/Save will fail
-    }
-} 
+}

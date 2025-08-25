@@ -1,5 +1,5 @@
 using Xunit;
-using akhr.ir.Models;
+using ScissorLink.Models;
 
 namespace ScissorLink.Tests.Models;
 
