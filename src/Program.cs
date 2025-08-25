@@ -20,7 +20,7 @@ public class Program
         builder.Services.AddMemoryCache();
         builder.Services.AddControllers();
 
-        // Add MVC services for views (needed for 404 error page)
+        // Add MVC services for controllers (needed for API and error handling)
         builder.Services.AddControllersWithViews();
 
         // Add Entity Framework
@@ -69,6 +69,9 @@ public class Program
         app.UseStaticFiles();
         app.UseStatusCodePagesWithReExecute("/error/{0}");
         app.MapControllers();
+
+        // Fallback for SPA routing - serve index.html for any non-API routes that aren't found
+        app.MapFallbackToFile("index.html");
 
         app.Run();
     }

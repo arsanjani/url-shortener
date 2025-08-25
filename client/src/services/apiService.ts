@@ -7,9 +7,9 @@ import {
 import { redirectToErrorPage, isErrorStatusCode } from "../utils/errorUtils";
 
 const API_BASE_URL =
-  process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+  process.env.REACT_APP_API_URL || `${window.location.origin}/api`;
 const SHORT_URL_BASE =
-  process.env.REACT_APP_SHORT_URL_BASE || "http://localhost:5000";
+  process.env.REACT_APP_SHORT_URL_BASE || window.location.origin;
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
