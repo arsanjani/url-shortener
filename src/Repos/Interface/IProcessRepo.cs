@@ -2,13 +2,19 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using akhr.ir.Models;
+using ScissorLink.Models;
 
-namespace akhr.ir.Repos.Interface
+namespace ScissorLink.Repos.Interface
 {
     public interface IProcessRepo
     {
         Task<DtoShortLink?> Get(string token);
         Task<bool> Save(DtoShortLinkDetail dto);
+        Task<List<DtoShortLink>> GetAll();
+        Task<DtoShortLink?> GetById(int id);
+        Task<DtoShortLink> Create(DtoShortLink shortLink);
+        Task<DtoShortLink?> Update(DtoShortLink shortLink);
+        Task<bool> Delete(int id);
+        Task<bool> TokenExists(string token);
     }
 }

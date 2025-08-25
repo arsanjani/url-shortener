@@ -3,17 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using akhr.ir.Models;
-using akhr.ir.Services.Interface;
+using ScissorLink.Models;
+using ScissorLink.Services.Interface;
 using Microsoft.AspNetCore.Hosting;
 using MaxMind.GeoIP2;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Extensions.Caching.Memory;
 using System.IO;
 
-namespace akhr.ir.Controllers
+
+namespace ScissorLink.Controllers
 {
-    [Route("")]
+    [Route("/")]
     public class ProcessController : Controller
     {
         #region Property
@@ -54,7 +55,7 @@ namespace akhr.ir.Controllers
             {
                 #region GET BROWSER INFO
                 var ua = Request.Headers["User-Agent"];
-                var userAgent = new UserAgent.UserAgent(ua!);
+                var userAgent = new ScissorLink.UserAgent.UserAgent(ua!);
                 dtoDetail.OS = userAgent.OS.Name;
                 dtoDetail.Browser = userAgent.Browser.Name;
                 #endregion

@@ -1,62 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Data.SqlClient;
+﻿using ScissorLink.Data;
 
-namespace akhr.ir.Repos
+namespace ScissorLink.Repos
 {
-    public class BaseRepo : IDisposable
+    public abstract class BaseRepo
     {
-        protected IDbConnection? con;
-        private IConfiguration? _config;
-        private bool _disposed = false;
+        protected readonly ScissorLinkDbContext _context;
 
-        protected IConfiguration Config
+        protected BaseRepo(ScissorLinkDbContext context)
         {
-            get { return _config!; }
-            set
-            {
-                _config = value;
-                if (con == null && _config != null)
-                {
-                    try
-                    {
-                        var connectionString = _config.GetConnectionString("dbScissorLink");
-                        if (!string.IsNullOrEmpty(connectionString))
-                        {
-                            con = new SqlConnection(connectionString);
-                        }
-                    }
-                    catch
-                    {
-                        // Ignore exceptions during configuration setup
-                        // This allows tests to pass without proper configuration
-                    }
-                }
-            }
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposed)
-            {
-                if (disposing)
-                {
-                    con?.Close();
-                    con?.Dispose();
-                }
-                _disposed = true;
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            _context = context;
         }
     }
 }

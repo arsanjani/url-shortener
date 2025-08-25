@@ -1,19 +1,30 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Dapper.Contrib.Extensions;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace akhr.ir.Models
+namespace ScissorLink.Models
 {
     [Table("ShortLinkDetail")]
     public class DtoShortLinkDetail
     {
         [Key]
         public long ID { get; set; }
+        
         public int ShortLinkID { get; set; }
+        
+        public DateTime VisitDate { get; set; } = DateTime.Now;
+        
+        [StringLength(50)]
         public string? Country { get; set; }
+        
+        [StringLength(50)]
         public string? OS { get; set; }
+        
+        [StringLength(50)]
         public string? Browser { get; set; }
+
+        // Navigation property
+        [ForeignKey("ShortLinkID")]
+        public virtual DtoShortLink? ShortLink { get; set; }
     }
 }
