@@ -1,10 +1,10 @@
 using Xunit;
 using Moq;
 using Microsoft.Extensions.Caching.Memory;
-using akhr.ir.Services;
-using akhr.ir.Services.Interface;
-using akhr.ir.Repos.Interface;
-using akhr.ir.Models;
+using ScissorLink.Services;
+using ScissorLink.Services.Interface;
+using ScissorLink.Repos.Interface;
+using ScissorLink.Models;
 
 namespace ScissorLink.Tests.Services;
 
@@ -39,7 +39,7 @@ public class ProcessServiceTests
             IsPublish = true
         };
 
-        object cachedValue = expectedResult;
+        object? cachedValue = expectedResult;
         _mockCache.Setup(c => c.TryGetValue($"ShortLink-{token}", out cachedValue))
                   .Returns(true);
 
@@ -64,7 +64,7 @@ public class ProcessServiceTests
             IsPublish = true
         };
 
-        object cachedValue = null!;
+        object? cachedValue = null;
         _mockCache.Setup(c => c.TryGetValue($"ShortLink-{token}", out cachedValue))
                   .Returns(false);
 
@@ -87,7 +87,7 @@ public class ProcessServiceTests
         var token = "test-token";
         DtoShortLink? nullResult = null;
 
-        object cachedValue = null!;
+        object? cachedValue = null;
         _mockCache.Setup(c => c.TryGetValue($"ShortLink-{token}", out cachedValue))
                   .Returns(false);
 
@@ -120,7 +120,7 @@ public class ProcessServiceTests
             IsPublish = true
         };
 
-        object cachedValue = null!;
+        object? cachedValue = null;
         _mockCache.Setup(c => c.TryGetValue($"ShortLink-{token}", out cachedValue))
                   .Returns(false);
 
@@ -142,11 +142,11 @@ public class ProcessServiceTests
         string? nullToken = null;
         DtoShortLink? nullResult = null;
 
-        object cachedValue = null!;
+        object? cachedValue = null;
         _mockCache.Setup(c => c.TryGetValue(It.IsAny<string>(), out cachedValue))
                   .Returns(false);
 
-        _mockRepo.Setup(r => r.Get(nullToken))
+        _mockRepo.Setup(r => r.Get(nullToken!))
                  .ReturnsAsync(nullResult);
 
         // Act
@@ -154,7 +154,7 @@ public class ProcessServiceTests
 
         // Assert
         Assert.Null(result);
-        _mockRepo.Verify(r => r.Get(nullToken), Times.Once);
+        _mockRepo.Verify(r => r.Get(nullToken!), Times.Once);
     }
 
     [Fact]
@@ -187,7 +187,7 @@ public class ProcessServiceTests
         // Arrange
         DtoShortLinkDetail? nullDto = null;
 
-        _mockRepo.Setup(r => r.Save(nullDto))
+        _mockRepo.Setup(r => r.Save(nullDto!))
                  .ReturnsAsync(false);
 
         // Act
@@ -195,7 +195,7 @@ public class ProcessServiceTests
 
         // Assert
         Assert.False(result);
-        _mockRepo.Verify(r => r.Save(nullDto), Times.Once);
+        _mockRepo.Verify(r => r.Save(nullDto!), Times.Once);
     }
 
     [Fact]
@@ -229,7 +229,7 @@ public class ProcessServiceTests
         var token = "test-token";
         var expectedException = new Exception("Database error");
 
-        object cachedValue = null!;
+        object? cachedValue = null;
         _mockCache.Setup(c => c.TryGetValue($"ShortLink-{token}", out cachedValue))
                   .Returns(false);
 
@@ -276,7 +276,7 @@ public class ProcessServiceTests
             IsPublish = true
         };
 
-        object cachedValue = null!;
+        object? cachedValue = null;
         _mockCache.Setup(c => c.TryGetValue($"ShortLink-{token}", out cachedValue))
                   .Throws(new Exception("Cache error"));
 
@@ -301,7 +301,7 @@ public class ProcessServiceTests
             IsPublish = true
         };
 
-        object cachedValue = null!;
+        object? cachedValue = null;
         _mockCache.Setup(c => c.TryGetValue($"ShortLink-{token}", out cachedValue))
                   .Returns(false);
 

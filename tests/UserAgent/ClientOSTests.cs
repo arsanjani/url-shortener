@@ -1,5 +1,5 @@
 using Xunit;
-using akhr.ir.UserAgent;
+using ScissorLink.UserAgent;
 
 namespace ScissorLink.Tests.UserAgent;
 
