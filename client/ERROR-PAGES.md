@@ -1,48 +1,122 @@
-# Error Pages Documentation
+<div align="center">
 
-## Overview
+# 🛡️ Error Pages Documentation
 
-The ScissorLink Admin Panel now includes a comprehensive error handling system built with React and Material-UI components. This replaces the previous Razor-based 404.cshtml with a modern, responsive, and reusable error page system that follows Google Material Design standards.
+[![React](https://img.shields.io/badge/React-18-61dafb?style=for-the-badge&logo=react)](https://reactjs.org/)
+[![Material-UI](https://img.shields.io/badge/Material--UI-5.15-0081cb?style=for-the-badge&logo=mui)](https://mui.com/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-4.9-3178c6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+[![Error Handling](https://img.shields.io/badge/Error_Handling-Advanced-ff5722?style=for-the-badge&logo=warning)](https://reactjs.org/docs/error-boundaries.html)
 
-## Features
+**🚀 Comprehensive error handling system for ScissorLink Admin Panel**
 
-- **Material Design Compliance**: All error pages follow Google's Material Design principles
-- **Left-to-Right (LTR) Layout**: English-first design with proper LTR text direction
-- **Multiple Error Types**: Support for various HTTP error codes and scenarios
-- **Responsive Design**: Works seamlessly across desktop, tablet, and mobile devices
-- **Smooth Animations**: Subtle animations and transitions for better UX
-- **Error Boundary**: Global error catching for unhandled JavaScript errors
-- **Automatic Redirects**: API errors automatically redirect to appropriate error pages
+*Beautiful, responsive error pages that turn failures into friendly experiences*
 
-## Error Types Supported
+[🎯 Features](#-features) • [🔧 Error Types](#-error-types-supported) • [📁 Structure](#-file-structure) • [🧪 Testing](#-testing)
 
-### 1. 404 - Not Found (`NotFoundPage`)
-- **Route**: `/error/404` or any unmatched route (`*`)
-- **Use Case**: Page or resource not found
+---
+
+</div>
+
+![Error Pages Preview](https://via.placeholder.com/800x400/f44336/ffffff?text=ScissorLink+Error+Pages)
+
+## 🌟 Overview
+
+The ScissorLink Admin Panel features a **comprehensive error handling system** built with React and Material-UI components. This modern solution replaces the previous Razor-based 404.cshtml with a **responsive, reusable error page system** that follows Google Material Design standards.
+
+## 🎯 Features
+
+<div align="center">
+
+### **🛡️ Advanced Error Handling**
+
+*Turning errors into opportunities for better UX*
+
+</div>
+
+<table>
+<tr>
+<td width="33%" align="center">
+
+### 🎨 **Design Excellence**
+
+🎯 **Material Design** → Google's design principles
+📱 **Responsive Layout** → Perfect on all devices  
+🌊 **Smooth Animations** → Subtle UX transitions
+🌍 **LTR Support** → English-first design
+
+</td>
+<td width="33%" align="center">
+
+### 🔧 **Smart Functionality**
+
+🛡️ **Error Boundaries** → Catch unhandled errors
+🔄 **Auto Redirects** → API errors handled gracefully
+🎮 **Multiple Types** → Support for all HTTP codes
+⚡ **Fast Loading** → Optimized error pages
+
+</td>
+<td width="33%" align="center">
+
+### 🚀 **User Experience**
+
+😊 **Friendly Messages** → Clear, helpful error text
+🔗 **Action Buttons** → Quick navigation options
+📊 **Status Awareness** → Context-aware error handling
+💡 **Solution Hints** → Guidance for users
+
+</td>
+</tr>
+</table>
+
+## 🔧 Error Types Supported
+
+<div align="center">
+
+### **🎯 Complete Error Coverage**
+
+*Every error scenario handled with style*
+
+</div>
+
+<table>
+<tr>
+<td width="50%">
+
+### 🚨 **HTTP Status Errors**
+
+**🔍 404 - Not Found** ![Orange](https://img.shields.io/badge/Color-Orange-ff9800?style=flat-square)
+- **Route**: `/error/404` or unmatched routes (`*`)
+- **Scenario**: Page or resource not found
 - **Actions**: Go Home, Admin Panel
-- **Color**: Orange (#ff9800)
 
-### 2. 500 - Server Error (`ServerErrorPage`)
+**💥 500 - Server Error** ![Red](https://img.shields.io/badge/Color-Red-f44336?style=flat-square)
 - **Route**: `/error/500`
-- **Use Case**: Internal server errors
+- **Scenario**: Internal server errors
 - **Actions**: Try Again, Go Home
-- **Color**: Red (#f44336)
 
-### 3. 403 - Forbidden (`ForbiddenPage`)
+**🚫 403 - Forbidden** ![Pink](https://img.shields.io/badge/Color-Pink-e91e63?style=flat-square)
 - **Route**: `/error/403`
-- **Use Case**: Access denied/insufficient permissions
+- **Scenario**: Access denied/insufficient permissions
 - **Actions**: Go Home, Admin Panel
-- **Color**: Pink (#e91e63)
 
-### 4. Network Error
-- **Use Case**: Connection issues, offline scenarios
+</td>
+<td width="50%">
+
+### 🌐 **Application Errors**
+
+**📡 Network Error** ![Purple](https://img.shields.io/badge/Color-Purple-9c27b0?style=flat-square)
+- **Scenario**: Connection issues, offline scenarios
 - **Actions**: Try Again, Go Home
-- **Color**: Purple (#9c27b0)
+- **Smart Detection**: Automatic offline detection
 
-### 5. Unknown Error
-- **Use Case**: Generic errors, unhandled exceptions
+**❓ Unknown Error** ![Blue Grey](https://img.shields.io/badge/Color-Blue_Grey-607d8b?style=flat-square)
+- **Scenario**: Generic errors, unhandled exceptions
 - **Actions**: Try Again, Go Home, Admin Panel
-- **Color**: Blue Grey (#607d8b)
+- **Fallback**: Catches everything else
+
+</td>
+</tr>
+</table>
 
 ## File Structure
 
